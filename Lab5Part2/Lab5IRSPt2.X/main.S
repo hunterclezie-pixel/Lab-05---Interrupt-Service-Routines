@@ -23,7 +23,7 @@
   CONFIG  BOR4V = BOR40V        ; Brown-out Reset Selection bit (Brown-out Reset set to 4.0V)
   CONFIG  WRT = OFF             ; Flash Program Memory Self Write Enable bits (Write protection off)
 
-// config statements should precede project file includes.
+; config statements should precede project file includes.
 #include <xc.inc>  
     ; General Purpose Registers
     W_TEMP      EQU 0x70 ; Used as part of the temporary hold for save/restore
@@ -51,12 +51,14 @@ Setup:
 
     BCF 0x03,6	; Sets Bank 1
     BSF 0x03,5	; Sets Bank 1
-    MOVLW 0x01	; Setting RB0 as input
+    MOVLW 0x11	; Setting RB4 and RB0 as inputs
     MOVWF 0x86	; Setting TRISB
     CLRF 0x85	; Setting TRISA on reset to LOW, making PORTA an output
-    CLRF 0x87	; Setting TRISC on reset to LOW, making PORTc an output
+    CLRF 0x87	; Setting TRISC on reset to LOW, making PORTC an output
     BCF 0x81,0	; Making PORTB have weak pull-ups
     BCF 0x81,6	; INTEDG = 0, interrupt on falling edge
+    MOVLW 0x10	; Enabling interrupt-on-change for RB4
+    MOVWF 0x96	; Setting IOCB4
         
     BSF 0x03,6	; Sets Bank 3    
     BSF 0x03,5	; Sets Bank 3    
@@ -66,7 +68,9 @@ Setup:
     ; Interrupt Section
     BCF 0x03,6	; Sets Bank 0    
     BCF 0x03,5	; Sets Bank 0
+    BCF INTCON,0    ; Clearing PORTB change interrupt flag bit
     BCF INTCON,1    ; Clearing external interrupt flag INTF
+    BSF INTCON,3    ; Enabling The PORTB change enable bit RBIE
     BSF INTCON,4    ; Enabling RB0 external interrupt INTE
     BSF INTCON,7    ; Enabling global interrupts GIE
 
@@ -74,7 +78,7 @@ Setup:
 
 Main:    
     MOVLW 0x01		; Loading bit 0
-    XORWF PORTA,1	; Toggling RA0 monitoring pin
+    XORWF PORTA,F	; Toggling RA0 monitoring pin
     GOTO Main		; Repeat program
     
 ISRHandler:
@@ -82,10 +86,20 @@ ISRHandler:
     SWAPF STATUS,W	; Moving STATUS into W
     CLRF STATUS		; Selecting Bank 0
     MOVWF STATUS_TEMP	; Saving STATUS register
-    GOTO ExternalISR
+    BTFSC INTCON,0	; Checking if PORTB change interrupt occurred 
+    GOTO IncrementISR
+    BTFSC INTCON,1	; Checking if RB0 external interrupt occurred
+    GOTO ClearISR
+    GOTO LeaveISR
 
-ExternalISR:
+IncrementISR:
+    MOVF PORTB,W	; Reading PORTB to resolve IOC mismatch
     INCF PORTC,F	; Incrementing PORTC binary count
+    BCF INTCON,0	; Clearing PORTB change interrupt flag RBIF
+    GOTO LeaveISR
+    
+ClearISR:
+    CLRF PORTC		; Clearing PORTC binary count
     BCF INTCON,1	; Clearing external interrupt flag INTF
     GOTO LeaveISR
 
