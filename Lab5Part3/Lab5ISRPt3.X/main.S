@@ -28,6 +28,9 @@
     ; General Purpose Registers
     W_TEMP      EQU 0x70 ; Used as part of the temporary hold for save/restore
     STATUS_TEMP EQU 0x71 ; Used as part of the temporary hold for save/restore
+    PreviousB   EQU 0x20 ; Stores the previous PORTB value
+    CurrentB    EQU 0x21 ; Stores the current PORTB value
+    ChangedB    EQU 0x22 ; Stores which PORTB bits change
  
 ; Reset Vector at 0000h. Execution starts here after reset.
 PSECT resetVect,class=CODE,delta=2
@@ -55,10 +58,8 @@ Setup:
     MOVWF 0x86	; Setting TRISB
     CLRF 0x85	; Setting TRISA on reset to LOW, making PORTA an output
     CLRF 0x87	; Setting TRISC on reset to LOW, making PORTC an output
-    BCF 0x81,0	; Making PORTB have weak pull-ups
-    BCF 0x81,6	; INTEDG = 0, interrupt on falling edge
     MOVLW 0xFF	; Enabling interrupt-on-change for PORTB
-    MOVWF 0x96	; Setting IOCB4
+    MOVWF 0x96	; Setting IOC on RB0-RB7
         
     BSF 0x03,6	; Sets Bank 3    
     BSF 0x03,5	; Sets Bank 3    
@@ -68,6 +69,8 @@ Setup:
     ; Interrupt Section
     BCF 0x03,6	; Sets Bank 0    
     BCF 0x03,5	; Sets Bank 0
+    MOVF PORTB,W	; Reading initial PORTB state
+    MOVWF PreviousB	; Saving initial PORTB comparison state
     BCF INTCON,0    ; Clearing PORTB change interrupt flag bit
     BCF INTCON,1    ; Clearing external interrupt flag INTF
     BSF INTCON,3    ; Enabling The PORTB change enable bit RBIE
@@ -77,8 +80,6 @@ Setup:
     GOTO Main    
 
 Main:    
-    MOVLW 0x01		; Loading bit 0
-    XORWF PORTA,F	; Toggling RA0 monitoring pin
     GOTO Main		; Repeat program
     
 ISRHandler:
@@ -87,21 +88,47 @@ ISRHandler:
     CLRF STATUS		; Selecting Bank 0
     MOVWF STATUS_TEMP	; Saving STATUS register
     BTFSC INTCON,0	; Checking if PORTB change interrupt occurred 
-    GOTO IncrementISR
-    BTFSC INTCON,1	; Checking if RB0 external interrupt occurred
-    GOTO ClearISR
+    GOTO ChangeISR
     GOTO LeaveISR
 
-IncrementISR:
-    MOVF PORTB,W	; Reading PORTB to resolve IOC mismatch
-    INCF PORTC,F	; Incrementing PORTC binary count
+ChangeISR:
+    MOVF PORTB,W	; Reading current PORTB and resolving IOC mismatch
+    MOVWF CurrentB	; Saving current PORTB state
+    XORWF PreviousB,W	; Comparing current and previous PORTB states
+    MOVWF ChangedB	; Saving which bits changed
+    MOVF CurrentB,W	; Updating previous PORTB state
+    MOVWF PreviousB	
     BCF INTCON,0	; Clearing PORTB change interrupt flag RBIF
+    CALL LookUpTable	; Finding highest priority changed pin
+    MOVWF PORTA		; Displaying pin number on RA2-RA0
     GOTO LeaveISR
     
-ClearISR:
-    CLRF PORTC		; Clearing PORTC binary count
-    BCF INTCON,1	; Clearing external interrupt flag INTF
-    GOTO LeaveISR
+LookUpTable:
+    BTFSC ChangedB,7
+    RETLW 0x07
+
+    BTFSC ChangedB,6
+    RETLW 0x06
+
+    BTFSC ChangedB,5
+    RETLW 0x05
+
+    BTFSC ChangedB,4
+    RETLW 0x04
+
+    BTFSC ChangedB,3
+    RETLW 0x03
+
+    BTFSC ChangedB,2
+    RETLW 0x02
+
+    BTFSC ChangedB,1
+    RETLW 0x01
+
+    BTFSC ChangedB,0
+    RETLW 0x00
+
+    RETLW 0x00
 
 LeaveISR:
     SWAPF STATUS_TEMP,W	; Restoring saved STATUS value
