@@ -106,28 +106,20 @@ ChangeISR:
 LookUpTable:
     BTFSC ChangedB,7
     RETLW 0x07
-
     BTFSC ChangedB,6
     RETLW 0x06
-
     BTFSC ChangedB,5
     RETLW 0x05
-
     BTFSC ChangedB,4
     RETLW 0x04
-
     BTFSC ChangedB,3
     RETLW 0x03
-
     BTFSC ChangedB,2
     RETLW 0x02
-
     BTFSC ChangedB,1
     RETLW 0x01
-
     BTFSC ChangedB,0
     RETLW 0x00
-
     RETLW 0x00
 
 LeaveISR:

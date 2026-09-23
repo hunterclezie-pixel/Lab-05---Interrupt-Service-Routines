@@ -95,7 +95,7 @@ ${OBJECTDIR}/main.o: main.S  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F883 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.S \
-	 -D__DEBUG=1   -mdfp="${DFP_DIR}/xc8"  -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp  -Wl,-presetVect=0000h,-pisrVect=0004h,-pcode=0008h
+	 -D__DEBUG=1   -mdfp="${DFP_DIR}/xc8"  -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull  -Wl,-presetVect=0000h,-pisrVect=0004h,-pcode=0008h
 	
 else
 ${OBJECTDIR}/main.o: main.S  nbproject/Makefile-${CND_CONF}.mk 
@@ -104,7 +104,7 @@ ${OBJECTDIR}/main.o: main.S  nbproject/Makefile-${CND_CONF}.mk
 	${MP_AS} -mcpu=PIC16F883 -c \
 	-o ${OBJECTDIR}/main.o \
 	main.S \
-	  -mdfp="${DFP_DIR}/xc8"  -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp  -Wl,-presetVect=0000h,-pisrVect=0004h,-pcode=0008h
+	  -mdfp="${DFP_DIR}/xc8"  -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull  -Wl,-presetVect=0000h,-pisrVect=0004h,-pcode=0008h
 	
 endif
 
