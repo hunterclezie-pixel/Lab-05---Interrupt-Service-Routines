@@ -1,6 +1,6 @@
 // Hunter Clezie
 // RCET3375
-// Lab5ISRPt3
+// Lab5ISRPt4
 // https://github.com/hunterclezie-pixel/Lab-05---Interrupt-Service-Routines.git
 
 ; PIC16F883 Configuration Bit Settings
@@ -26,11 +26,19 @@
 ; config statements should precede project file includes.
 #include <xc.inc>  
     ; General Purpose Registers
-    W_TEMP      EQU 0x70 ; Used as part of the temporary hold for save/restore
-    STATUS_TEMP EQU 0x71 ; Used as part of the temporary hold for save/restore
-    PreviousB   EQU 0x20 ; Stores the previous PORTB value
-    CurrentB    EQU 0x21 ; Stores the current PORTB value
-    ChangedB    EQU 0x22 ; Stores which PORTB bits change
+    W_TEMP1      EQU 0x70 ; Used as part of the temporary hold for save/restore
+    STATUS_TEMP1 EQU 0x71 ; Used as part of the temporary hold for save/restore
+    ISR_STATE    EQU 0x72 ; Bit 0 shows if the 6 behavior is active
+    W_TEMP2      EQU 0x73 ; Saves W for the nested 7 interrupt
+    STATUS_TEMP2 EQU 0x74 ; Saves STATUS for the nested 7 interrupt
+
+    OUT_SAVE     EQU 0x75 ; Saves outCount when 7 interrupts 6
+    MID_SAVE     EQU 0x76 ; Saves midCount when 7 interrupts 6
+    IN_SAVE      EQU 0x77 ; Saves inCount when 7 interrupts 6
+
+    outCount     EQU 0x20 ; Outer delay counter
+    midCount     EQU 0x21 ; Middle delay counter
+    inCount      EQU 0x22 ; Inner delay counter
  
 ; Reset Vector at 0000h. Execution starts here after reset.
 PSECT resetVect,class=CODE,delta=2
