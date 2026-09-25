@@ -56,7 +56,6 @@ PSECT code,class=CODE,delta=2
 Setup:
     BCF 0x03,6	; Sets Bank 0
     BCF 0x03,5	; Sets Bank 0
-    CLRF 0x05	; Setting PORTA on reset to LOW
     CLRF 0x06	; Setting PORTB on reset to LOW
     CLRF 0x07	; Setting PORTC on reset to LOW
     CLRF ISR_STATE ; Clearing interrupt state
@@ -65,7 +64,6 @@ Setup:
     BSF 0x03,5	; Sets Bank 1
     MOVLW 0x03	; Setting RB0 and RB1 as inputs
     MOVWF 0x86	; Setting TRISB
-    CLRF 0x85	; Setting TRISA on reset to LOW, making PORTA an output
     CLRF 0x87	; Setting TRISC on reset to LOW, making PORTC an output
     BCF 0x81,6	; INTEDG = 0, RB0 interrupt on falling edge
     MOVLW 0x02	; Enabling interrupt-on-change for RB1
