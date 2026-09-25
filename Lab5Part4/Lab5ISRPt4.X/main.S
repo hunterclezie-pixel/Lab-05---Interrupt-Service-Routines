@@ -197,25 +197,39 @@ Delay2s:
     RETURN
     
 Delay500ms:
-    MOVLW 0x17		; Loading outer delay count
-    MOVWF outCount
+    MOVLW 0x04		; 1TCY
+    MOVWF outCount	; 1TCY
 
-DelayOuter:
-    MOVLW 0xBD		; Loading middle delay count
-    MOVWF midCount
+outLoop:
+    CALL midDelay	; 2TCY
+    DECFSZ outCount	; 1(2)TCY
+    goto outLoop	; 2TCY
+    RETURN		; 2TCY
 
-DelayMiddle:
-    MOVLW 0x25		; Loading inner delay count
-    MOVWF inCount
+midDelay:
+    MOVLW 0xB7		; 1TCY
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    MOVWF midCount	; 1TCY
 
-DelayInner:
-    DECFSZ inCount,F	; Decrementing inner delay count
-    GOTO DelayInner	; Repeating until inner count reaches zero
-    DECFSZ midCount,F	; Decrementing middle delay count
-    GOTO DelayMiddle	; Repeating middle delay
-    DECFSZ outCount,F	; Decrementing outer delay count
-    GOTO DelayOuter	; Repeating outer delay
-    RETURN		; Returning from 0.5 second delay
+midLoop:
+    CALL inDelay	; 2TCY
+    DECFSZ midCount	; 1(2)TCY
+    goto midLoop	; 2TCY
+    RETURN		; 2TCY
+
+inDelay:
+    MOVLW 0xE1		; 1TCY
+    MOVWF inCount	; 1TCY
+
+inLoop:
+    DECFSZ inCount	; 1(2)TCY
+    goto inLoop		; 2TCY
+    RETURN		; 2TCY
 
 LeaveNormal:
     SWAPF STATUS_TEMP1,W ; Restoring saved STATUS value
